@@ -81,8 +81,8 @@ public static class PathsHelper
     {
         get
         {
-            var appDataPath = SPCodeAppDataPath + @"\sourcepawn\configs\Configs.xml";
-            var localPath = @".\sourcepawn\configs\Configs.xml";
+            var appDataPath = SPCodeAppDataPath + @"\sourcepawn\configs\Configs.json";
+            var localPath = @".\sourcepawn\configs\Configs.json";
             return LocalInstallation ? localPath : appDataPath;
         }
     }

@@ -1,40 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json;
 using SourcepawnCondenser.SourcemodDefinition;
 
 namespace SPCode.Utils;
 
 public class Config : ICloneable
 {
-    public bool AutoCopy;
-    public bool AutoUpload;
-    public bool AutoRCON;
-    public string CopyDirectory = string.Empty;
-    public bool DeleteAfterCopy;
-    public string FTPDir = string.Empty;
-    public string FTPHost = "ftp://localhost/";
-    public string FTPPassword = string.Empty;
-    public string FTPUser = string.Empty;
-    public string Name = string.Empty;
-    public int OptimizeLevel = 2;
-    public string PostCmd = string.Empty;
-    public string PreCmd = string.Empty;
-    public string RConCommands = string.Empty;
-    public string RConIP = "127.0.0.1";
-    public string RConPassword = string.Empty;
-    public ushort RConPort = 27015;
-    public string ServerArgs = string.Empty;
-    public string ServerFile = string.Empty;
+    public bool AutoCopy { get; set; }
+    public bool AutoUpload { get; set; }
+    public bool AutoRcon { get; set; }
+    public string CopyDirectory { get; set; } = string.Empty;
+    public bool DeleteAfterCopy { get; set; }
+    public string FtpDir { get; set; } = string.Empty;
+    [DefaultValue("ftp://localhost/")] public string FtpHost { get; set; } = "ftp://localhost/";
+    public string FtpPassword { get; set; } = string.Empty;
+    public string FTPUser { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    [DefaultValue(2)] public int OptimizeLevel { get; set; } = 2;
+    public string PostCmd { get; set; } = string.Empty;
+    public string PreCmd { get; set; } = string.Empty;
+    public string RConCommands { get; set; } = string.Empty;
+    [DefaultValue("127.0.0.1")] public string RConIP { get; set; } = "127.0.0.1";
+    public string RConPassword { get; set; } = string.Empty;
+    [DefaultValue(27015)] public ushort RConPort { get; set; } = 27015;
+    public string ServerArgs { get; set; } = string.Empty;
+    public string ServerFile { get; set; } = string.Empty;
 
-    private SMDefinition SMDef;
+    [JsonIgnore] private SMDefinition? SMDef;
 
-    public List<string> SMDirectories;
+    public List<string> SMDirectories= new();
     public List<string> RejectedPaths = new();
 
     public bool Standard;
-    public int VerboseLevel = 1;
+
+    [DefaultValue(1)] public int VerboseLevel = 1;
 
     public SMDefinition GetSMDef()
     {
@@ -66,7 +69,6 @@ public class Config : ICloneable
             watch.Stop();
             Console.WriteLine(watch.ElapsedMilliseconds);
 
-
             RejectedPaths.Clear();
 
             if (rejectedPaths.Any())
@@ -88,12 +90,12 @@ public class Config : ICloneable
         {
             AutoCopy = AutoCopy,
             AutoUpload = AutoUpload,
-            AutoRCON = AutoRCON,
+            AutoRcon = AutoRcon,
             CopyDirectory = CopyDirectory,
             DeleteAfterCopy = DeleteAfterCopy,
-            FTPDir = FTPDir,
-            FTPHost = FTPHost,
-            FTPPassword = FTPPassword,
+            FtpDir = FtpDir,
+            FtpHost = FtpHost,
+            FtpPassword = FtpPassword,
             FTPUser = FTPUser,
             Name = Name,
             OptimizeLevel = OptimizeLevel,

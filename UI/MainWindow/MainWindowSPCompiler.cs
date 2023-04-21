@@ -352,7 +352,7 @@ public partial class MainWindow
                         ProgressTask.SetProgress(1.0);
                     }
 
-                    if (currentConfig.AutoRCON)
+                    if (currentConfig.AutoRcon)
                     {
                         ProgressTask.SetTitle(Translate("RCONCommand") + "...");
                         ProgressTask.SetIndeterminate();
@@ -459,7 +459,7 @@ public partial class MainWindow
         }
 
         var c = Program.Configs[Program.SelectedConfig];
-        if (string.IsNullOrWhiteSpace(c.FTPHost) || string.IsNullOrWhiteSpace(c.FTPUser))
+        if (string.IsNullOrWhiteSpace(c.FtpHost) || string.IsNullOrWhiteSpace(c.FTPUser))
         {
             output.Add("FTP Host or User fields are empty.");
             goto Dispatcher;
@@ -469,20 +469,20 @@ public partial class MainWindow
 
         try
         {
-            var ftp = new FTP(c.FTPHost, c.FTPUser, c.FTPPassword);
+            var ftp = new FTP(c.FtpHost, c.FTPUser, c.FtpPassword);
             foreach (var file in NonUploadedFiles)
             {
                 var fileInfo = new FileInfo(file);
                 if (fileInfo.Exists)
                 {
                     string uploadDir;
-                    if (string.IsNullOrWhiteSpace(c.FTPDir))
+                    if (string.IsNullOrWhiteSpace(c.FtpDir))
                     {
                         uploadDir = fileInfo.Name;
                     }
                     else
                     {
-                        uploadDir = c.FTPDir.TrimEnd('/') + "/" + fileInfo.Name;
+                        uploadDir = c.FtpDir.TrimEnd('/') + "/" + fileInfo.Name;
                     }
 
                     try

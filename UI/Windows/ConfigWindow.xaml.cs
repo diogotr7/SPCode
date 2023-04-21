@@ -16,16 +16,19 @@ using System.Xml;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Newtonsoft.Json;
 using SPCode.Interop;
 using SPCode.Utils;
 using ValveQuery.GameServer;
 using static SPCode.Interop.TranslationProvider;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace SPCode.UI.Windows;
 
 public partial class ConfigWindow
 {
     #region Properties
+
     private bool AllowChange;
     private bool NeedsSMDefInvalidation;
 
@@ -36,12 +39,9 @@ public partial class ConfigWindow
 
     private readonly string[] CompileMacros =
     {
-        $"{{editordir}} {Translate("macro_editordir")}",
-        $"{{scriptdir}} {Translate("macro_scriptdir")}",
-        $"{{copydir}} {Translate("macro_copydir")}",
-        $"{{scriptfile}} {Translate("macro_scriptfile")}",
-        $"{{scriptname}} {Translate("macro_scriptname")}",
-        $"{{pluginfile}} {Translate("macro_pluginfile")}",
+        $"{{editordir}} {Translate("macro_editordir")}", $"{{scriptdir}} {Translate("macro_scriptdir")}",
+        $"{{copydir}} {Translate("macro_copydir")}", $"{{scriptfile}} {Translate("macro_scriptfile")}",
+        $"{{scriptname}} {Translate("macro_scriptname")}", $"{{pluginfile}} {Translate("macro_pluginfile")}",
         $"{{pluginname}} {Translate("macro_pluginname")}"
     };
 
@@ -88,10 +88,7 @@ public partial class ConfigWindow
                     {
                         if (o is TextBox box)
                         {
-                            var dialog = new CommonOpenFileDialog
-                            {
-                                IsFolderPicker = true
-                            };
+                            var dialog = new CommonOpenFileDialog { IsFolderPicker = true };
                             var result = dialog.ShowDialog();
 
                             if (result == CommonFileDialogResult.Ok)
@@ -152,9 +149,11 @@ public partial class ConfigWindow
             return textBoxButtonFileCmd;
         }
     }
+
     #endregion
 
     #region Constructors
+
     public ConfigWindow()
     {
         InitializeComponent();
@@ -176,24 +175,18 @@ public partial class ConfigWindow
         CommandMacros.ToList().ForEach(x => Rcon_MenuC.Items.Add(x));
         Rcon_MenuC.SelectionChanged += CommandMacros_OnClickedItem;
 
-        var item1 = new ComboBoxItem()
-        {
-            Visibility = Visibility.Collapsed,
-            Content = Translate("Macros"),
-        };
-        var item2 = new ComboBoxItem()
-        {
-            Visibility = Visibility.Collapsed,
-            Content = Translate("Macros"),
-        };
+        var item1 = new ComboBoxItem() { Visibility = Visibility.Collapsed, Content = Translate("Macros"), };
+        var item2 = new ComboBoxItem() { Visibility = Visibility.Collapsed, Content = Translate("Macros"), };
         CMD_ItemC.Items.Insert(0, item1);
         Rcon_MenuC.Items.Insert(0, item2);
         CMD_ItemC.SelectedIndex = 0;
         Rcon_MenuC.SelectedIndex = 0;
     }
+
     #endregion
 
     #region Events
+
     private void ConfigListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         LoadConfigToUI(ConfigListBox.SelectedIndex);
@@ -207,11 +200,7 @@ public partial class ConfigWindow
         }
 
         SelectedBox.AppendText(content[..(content.IndexOf('}') + 1)]);
-        var item = new ComboBoxItem()
-        {
-            Visibility = Visibility.Collapsed,
-            Content = Translate("Macros"),
-        };
+        var item = new ComboBoxItem() { Visibility = Visibility.Collapsed, Content = Translate("Macros"), };
         CMD_ItemC.Items.Insert(0, item);
         CMD_ItemC.SelectedIndex = 0;
         SelectedBox.Focus();
@@ -226,11 +215,7 @@ public partial class ConfigWindow
         }
 
         C_RConCmds.AppendText(content[..(content.IndexOf('}') + 1)]);
-        var item = new ComboBoxItem()
-        {
-            Visibility = Visibility.Collapsed,
-            Content = Translate("Macros"),
-        };
+        var item = new ComboBoxItem() { Visibility = Visibility.Collapsed, Content = Translate("Macros"), };
         Rcon_MenuC.Items.Insert(0, item);
         Rcon_MenuC.SelectedIndex = 0;
         C_RConCmds.Focus();
@@ -253,10 +238,7 @@ public partial class ConfigWindow
             SMDirectories = new List<string>()
         };
         Program.Configs.Add(cfg);
-        ConfigListBox.Items.Add(new ListBoxItem
-        {
-            Content = Translate("NewConfig")
-        });
+        ConfigListBox.Items.Add(new ListBoxItem { Content = Translate("NewConfig") });
     }
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -266,10 +248,7 @@ public partial class ConfigWindow
         cfg.Name = newName;
         cfg.Standard = false;
         Program.Configs.Add(cfg);
-        ConfigListBox.Items.Add(new ListBoxItem
-        {
-            Content = newName
-        });
+        ConfigListBox.Items.Add(new ListBoxItem { Content = newName });
         ConfigListBox.SelectedIndex = ConfigListBox.Items.Count - 1;
     }
 
@@ -297,10 +276,7 @@ public partial class ConfigWindow
 
     private void AddSMDirButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new CommonOpenFileDialog
-        {
-            IsFolderPicker = true
-        };
+        var dialog = new CommonOpenFileDialog { IsFolderPicker = true };
 
         if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
         {
@@ -324,6 +300,7 @@ public partial class ConfigWindow
                 Translate("PermissionAccessErrorMessage"),
                 MessageDialogStyle.Affirmative, Program.MainWindow.MetroDialogOptions);
         }
+
         // Add to dirs of that config
         c.SMDirectories.Add(dialog.FileName);
 
@@ -341,6 +318,7 @@ public partial class ConfigWindow
         {
             return;
         }
+
         cfg.SMDirectories.RemoveAt(item);
         C_SMDir.Items.RemoveAt(item);
     }
@@ -457,7 +435,7 @@ public partial class ConfigWindow
         }
 
         Debug.Assert(C_AutoUpload.IsChecked != null, "C_AutoUpload.IsChecked != null");
-        Program.Configs[ConfigListBox.SelectedIndex].AutoRCON = C_AutoRCON.IsChecked.Value;
+        Program.Configs[ConfigListBox.SelectedIndex].AutoRcon = C_AutoRCON.IsChecked.Value;
     }
 
     private void C_DeleteAfterCopy_Changed(object sender, RoutedEventArgs e)
@@ -478,7 +456,7 @@ public partial class ConfigWindow
             return;
         }
 
-        Program.Configs[ConfigListBox.SelectedIndex].FTPHost = C_FTPHost.Text;
+        Program.Configs[ConfigListBox.SelectedIndex].FtpHost = C_FTPHost.Text;
     }
 
     private void C_FTPUser_TextChanged(object sender, TextChangedEventArgs e)
@@ -498,7 +476,7 @@ public partial class ConfigWindow
             return;
         }
 
-        Program.Configs[ConfigListBox.SelectedIndex].FTPPassword = C_FTPPW.Password;
+        Program.Configs[ConfigListBox.SelectedIndex].FtpPassword = C_FTPPW.Password;
     }
 
     private void C_FTPDir_TextChanged(object sender, TextChangedEventArgs e)
@@ -508,13 +486,14 @@ public partial class ConfigWindow
             return;
         }
 
-        Program.Configs[ConfigListBox.SelectedIndex].FTPDir = C_FTPDir.Text;
+        Program.Configs[ConfigListBox.SelectedIndex].FtpDir = C_FTPDir.Text;
     }
 
     [Obsolete("Obsolete")]
     private async void FTPTestConnectionButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = await this.ShowProgressAsync(Translate("TestingFTPConn"), Translate("PleaseWait"), settings: Program.MainWindow.MetroDialogOptions);
+        var dialog = await this.ShowProgressAsync(Translate("TestingFTPConn"), Translate("PleaseWait"),
+            settings: Program.MainWindow.MetroDialogOptions);
 
         var host = C_FTPHost.Text;
         var user = C_FTPUser.Text;
@@ -523,7 +502,8 @@ public partial class ConfigWindow
         if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pw))
         {
             await dialog?.CloseAsync()!;
-            await this.ShowMessageAsync(Translate("Warning"), Translate("FTPFieldsEmpty"), settings: Program.MainWindow.MetroDialogOptions);
+            await this.ShowMessageAsync(Translate("Warning"), Translate("FTPFieldsEmpty"),
+                settings: Program.MainWindow.MetroDialogOptions);
             return;
         }
 
@@ -539,15 +519,18 @@ public partial class ConfigWindow
         {
             return;
         }
+
         if (result)
         {
             await dialog?.CloseAsync();
-            await this.ShowMessageAsync(Translate("Success"), string.Empty, settings: Program.MainWindow.MetroDialogOptions);
+            await this.ShowMessageAsync(Translate("Success"), string.Empty,
+                settings: Program.MainWindow.MetroDialogOptions);
         }
         else
         {
             await dialog?.CloseAsync();
-            await this.ShowMessageAsync(Translate("Error"), ftp.ErrorMessage, settings: Program.MainWindow.MetroDialogOptions);
+            await this.ShowMessageAsync(Translate("Error"), ftp.ErrorMessage,
+                settings: Program.MainWindow.MetroDialogOptions);
         }
     }
 
@@ -591,7 +574,8 @@ public partial class ConfigWindow
     {
         var success = true;
         var errorMsg = "";
-        var dialog = await this.ShowProgressAsync(Translate("TestingRCONConn"), Translate("PleaseWait"), settings: Program.MainWindow.MetroDialogOptions);
+        var dialog = await this.ShowProgressAsync(Translate("TestingRCONConn"), Translate("PleaseWait"),
+            settings: Program.MainWindow.MetroDialogOptions);
 
         var ip = C_RConIP.Text;
         var port = C_RConPort.Text;
@@ -623,6 +607,7 @@ public partial class ConfigWindow
                 errorMsg = Translate("RCONFailureMessage");
                 goto End;
             }
+
             bool done = false;
             await Task.Run(() => { done = server.GetControl(C_RConPW.Password, false); });
             if (!done)
@@ -637,16 +622,18 @@ public partial class ConfigWindow
             errorMsg = ex.Message;
         }
 
-    End:
+        End:
 
         if ((bool)dialog?.IsCanceled)
         {
             return;
         }
+
         await dialog?.CloseAsync();
         if (success)
         {
-            await this.ShowMessageAsync(Translate("Success"), string.Empty, settings: Program.MainWindow.MetroDialogOptions);
+            await this.ShowMessageAsync(Translate("Success"), string.Empty,
+                settings: Program.MainWindow.MetroDialogOptions);
         }
         else
         {
@@ -704,56 +691,10 @@ public partial class ConfigWindow
 
             Program.MainWindow.FillConfigMenu();
             await Program.MainWindow.ChangeConfig(Program.SelectedConfig);
-            var outString = new StringBuilder();
-            var settings = new XmlWriterSettings
-            {
-                Indent = true,
-                IndentChars = "\t",
-                NewLineOnAttributes = false,
-                OmitXmlDeclaration = true
-            };
-            using (var writer = XmlWriter.Create(outString, settings))
-            {
-                writer.WriteStartElement("Configurations");
-                foreach (var c in Program.Configs)
-                {
-                    writer.WriteStartElement("Config");
-                    writer.WriteAttributeString("Name", c.Name);
-                    var SMDirOut = new StringBuilder();
-                    foreach (var dir in c.SMDirectories)
-                    {
-                        SMDirOut.Append(dir.Trim() + ";");
-                    }
 
-                    writer.WriteAttributeString("SMDirectory", SMDirOut.ToString());
-                    writer.WriteAttributeString("Standard", c.Standard ? "1" : "0");
-                    writer.WriteAttributeString("CopyDirectory", c.CopyDirectory);
-                    writer.WriteAttributeString("AutoCopy", c.AutoCopy ? "1" : "0");
-                    writer.WriteAttributeString("AutoUpload", c.AutoUpload ? "1" : "0");
-                    writer.WriteAttributeString("AutoRCON", c.AutoRCON ? "1" : "0");
-                    writer.WriteAttributeString("ServerFile", c.ServerFile);
-                    writer.WriteAttributeString("ServerArgs", c.ServerArgs);
-                    writer.WriteAttributeString("PostCmd", c.PostCmd);
-                    writer.WriteAttributeString("PreCmd", c.PreCmd);
-                    writer.WriteAttributeString("OptimizationLevel", c.OptimizeLevel.ToString());
-                    writer.WriteAttributeString("VerboseLevel", c.VerboseLevel.ToString());
-                    writer.WriteAttributeString("DeleteAfterCopy", c.DeleteAfterCopy ? "1" : "0");
-                    writer.WriteAttributeString("FTPHost", c.FTPHost);
-                    writer.WriteAttributeString("FTPUser", c.FTPUser);
-                    writer.WriteAttributeString("FTPPassword", ManagedAES.Encrypt(c.FTPPassword));
-                    writer.WriteAttributeString("FTPDir", c.FTPDir);
-                    writer.WriteAttributeString("RConIP", c.RConIP);
-                    writer.WriteAttributeString("RConPort", c.RConPort.ToString());
-                    writer.WriteAttributeString("RConPassword", ManagedAES.Encrypt(c.RConPassword));
-                    writer.WriteAttributeString("RConCommands", c.RConCommands);
-                    writer.WriteEndElement();
-                }
+            await ConfigLoader.SaveAsync(Program.Configs);
+            
 
-                writer.WriteEndElement();
-                writer.Flush();
-            }
-
-            File.WriteAllText(PathsHelper.ConfigFilePath, outString.ToString());
             LoggingControl.LogAction($"Configs saved.", 2);
         });
     }
@@ -781,9 +722,11 @@ public partial class ConfigWindow
             Close();
         }
     }
+
     #endregion
 
     #region Methods
+
     /// <summary>
     /// Loads the config preferences to the controls of the window
     /// </summary>
@@ -803,7 +746,7 @@ public partial class ConfigWindow
         C_Name.Text = c.Name;
         C_AutoCopy.IsChecked = c.AutoCopy;
         C_AutoUpload.IsChecked = c.AutoUpload;
-        C_AutoRCON.IsChecked = c.AutoRCON;
+        C_AutoRCON.IsChecked = c.AutoRcon;
         C_CopyDir.Text = c.CopyDirectory;
         C_ServerFile.Text = c.ServerFile;
         C_ServerArgs.Text = c.ServerArgs;
@@ -812,10 +755,10 @@ public partial class ConfigWindow
         C_OptimizationLevel.Value = c.OptimizeLevel;
         C_VerboseLevel.Value = c.VerboseLevel;
         C_DeleteAfterCopy.IsChecked = c.DeleteAfterCopy;
-        C_FTPHost.Text = c.FTPHost;
+        C_FTPHost.Text = c.FtpHost;
         C_FTPUser.Text = c.FTPUser;
-        C_FTPPW.Password = c.FTPPassword;
-        C_FTPDir.Text = c.FTPDir;
+        C_FTPPW.Password = c.FtpPassword;
+        C_FTPDir.Text = c.FtpDir;
         C_RConIP.Text = c.RConIP;
         C_RConPort.Text = c.RConPort.ToString();
         C_RConPW.Password = c.RConPassword;
@@ -831,34 +774,32 @@ public partial class ConfigWindow
     private ListBoxItem CreateDirItem(string path, bool canAccess = false)
     {
         var item = new ListBoxItem();
-        var stack = new StackPanel
-        {
-            Orientation = Orientation.Horizontal
-        };
-        stack.Children.Add(new TextBlock
-        {
-            Text = path
-        });
+        var stack = new StackPanel { Orientation = Orientation.Horizontal };
+        stack.Children.Add(new TextBlock { Text = path });
         if (!canAccess)
         {
             stack.Children.Add(new Image
             {
-                Source = new BitmapImage(new Uri($"/SPCode;component/Resources/Icons/icon-error.png", UriKind.Relative)),
+                Source =
+                    new BitmapImage(new Uri($"/SPCode;component/Resources/Icons/icon-error.png", UriKind.Relative)),
                 Width = 16,
                 Margin = new Thickness(5, 0, 0, 0),
                 ToolTip = Translate("PermissionAccessError")
             });
         }
+
         if (File.Exists(Path.Combine(path, Constants.SPCompiler)))
         {
             stack.Children.Add(new Image
             {
-                Source = new BitmapImage(new Uri($"/SPCode;component/Resources/Icons/icon-pawn.png", UriKind.Relative)),
+                Source =
+                    new BitmapImage(new Uri($"/SPCode;component/Resources/Icons/icon-pawn.png", UriKind.Relative)),
                 Width = 16,
                 Margin = new Thickness(5, 0, 0, 0),
                 ToolTip = Translate("SPCompilerFoundHere")
             });
         }
+
         item.Content = stack;
         return item;
     }
@@ -907,5 +848,6 @@ public partial class ConfigWindow
         C_OptimizationLevel.FlowDirection = FlowDirection.LeftToRight;
         C_VerboseLevel.FlowDirection = FlowDirection.LeftToRight;
     }
+
     #endregion
 }
