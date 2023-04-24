@@ -65,7 +65,7 @@ public partial class MainWindow
         CurrentWarnings.Clear();
 
         // Grabs current config
-        var currentConfig = Program.Configs[Program.SelectedConfig];
+        var currentConfig = Program.SelectedConfig;
 
         // Creates flags
         FileInfo spCompInfo = null;
@@ -386,7 +386,7 @@ public partial class MainWindow
         }
 
         var copyCount = 0;
-        var c = Program.Configs[Program.SelectedConfig];
+        var c = Program.SelectedConfig;
         if (string.IsNullOrWhiteSpace(c.CopyDirectory))
         {
             output.Add($"Copy directory is empty.");
@@ -458,7 +458,7 @@ public partial class MainWindow
             return;
         }
 
-        var c = Program.Configs[Program.SelectedConfig];
+        var c = Program.SelectedConfig;
         if (string.IsNullOrWhiteSpace(c.FtpHost) || string.IsNullOrWhiteSpace(c.FTPUser))
         {
             output.Add("FTP Host or User fields are empty.");
@@ -528,7 +528,7 @@ public partial class MainWindow
             return;
         }
 
-        var c = Program.Configs[Program.SelectedConfig];
+        var c = Program.SelectedConfig;
         var serverOptionsPath = c.ServerFile;
         if (string.IsNullOrWhiteSpace(serverOptionsPath))
         {

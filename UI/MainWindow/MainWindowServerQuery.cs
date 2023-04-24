@@ -20,7 +20,7 @@ public partial class MainWindow
     {
         var output = new List<string>();
 
-        var c = Program.Configs[Program.SelectedConfig];
+        var c = Program.SelectedConfig;
         if (string.IsNullOrWhiteSpace(c.RConIP) || string.IsNullOrWhiteSpace(c.RConCommands))
         {
             output.Add("The RCON IP or the Commands fields are empty.");

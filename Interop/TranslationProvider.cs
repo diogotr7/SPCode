@@ -4,6 +4,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Xml;
 using Octokit;
@@ -30,12 +32,15 @@ public class TranslationProvider
             Directory.CreateDirectory(_translationsDir);
         }
 
-        if (IsUpdateAvailable())
-        {
-            UpdateTranslations();
-        }
-
         ParseTranslationFiles();
+    }
+
+    public async Task CheckForUpdates()
+    {
+        if (await IsUpdateAvailable())
+        {
+            await UpdateTranslations();
+        }
     }
 
     /// <summary>
@@ -65,7 +70,7 @@ public class TranslationProvider
     /// </summary>
     /// <param name="lang">The language to load</param>
     /// <param name="initial">Whether this was the startup initial method call</param>
-    public void LoadLanguage(string lang, bool initial = false)
+    public async ValueTask LoadLanguage(string lang, bool initial = false)
     {
         _langDictionary.Clear();
         if (lang == string.Empty)
@@ -83,7 +88,7 @@ public class TranslationProvider
             if (initial)
             {
                 doc.Load(Path.Combine(_translationsDir, Constants.DefaultTranslationsFile));
-                foreach (XmlNode node in doc.ChildNodes[0].ChildNodes)
+                foreach (XmlNode node in doc.ChildNodes[0]!.ChildNodes)
                 {
                     if (node.NodeType != XmlNodeType.Comment)
                     {
@@ -95,8 +100,8 @@ public class TranslationProvider
             var file = Path.Combine(_translationsDir, $"{lang}.xml");
             if (!File.Exists(file))
             {
-                UpdateTranslations();
-                LoadLanguage(lang);
+                await UpdateTranslations();
+                await LoadLanguage(lang);
                 return;
             }
             else
@@ -144,7 +149,7 @@ public class TranslationProvider
                 doc.LoadXml(File.ReadAllText(fInfo.FullName));
 
                 // Get language name and ID
-                var langName = doc.ChildNodes[0].ChildNodes
+                var langName = doc.ChildNodes[0]!.ChildNodes
                     .Cast<XmlNode>()
                     .Single(x => x.Name == "language")
                     .InnerText;
@@ -166,7 +171,7 @@ public class TranslationProvider
     /// <summary>
     /// Downloads the latest translation files release from GitHub for SPCode to parse them.
     /// </summary>
-    public void UpdateTranslations()
+    public async Task UpdateTranslations()
     {
         try
         {
@@ -174,11 +179,10 @@ public class TranslationProvider
             DirHelper.ClearSPCodeTempFolder();
 
             // Download latest release zip file
-            var wc = new WebClient();
             var downloadedFile = Path.Combine(_tempDir, "langs.zip");
-            wc.Headers.Add(HttpRequestHeader.UserAgent, Constants.ProductHeaderValueName);
-            wc.DownloadFile(_latestVersion.ZipballUrl, downloadedFile);
 
+            await Program.HttpClient.DownloadFile(_latestVersion.ZipballUrl, downloadedFile);
+            
             // Decompress and replace all of its files
             ZipFile.ExtractToDirectory(downloadedFile, _tempDir);
             var filesDir = Directory.GetFiles(Directory.GetDirectories(_tempDir)[0]).Where(x => x.EndsWith(".xml"));
@@ -213,15 +217,15 @@ public class TranslationProvider
     /// Compares the stored version of the translations release with the one from GitHub
     /// </summary>
     /// <returns>Whether there's an update available</returns>
-    public bool IsUpdateAvailable()
+    private async Task<bool> IsUpdateAvailable()
     {
         try
         {
             var client = new GitHubClient(new ProductHeaderValue(Constants.ProductHeaderValueName));
             var versionStored = Program.OptionsObject.TranslationsVersion;
-
-            _latestVersion = client.Repository.Release.GetAll(Constants.OrgName,
-                Constants.TranslationsRepoName).Result[0];
+            
+            _latestVersion = (await client.Repository.Release.GetAll(Constants.OrgName,
+                Constants.TranslationsRepoName))[0];
 
             return versionStored < int.Parse(_latestVersion.Name);
         }
@@ -229,6 +233,5 @@ public class TranslationProvider
         {
             return false;
         }
-
     }
 }

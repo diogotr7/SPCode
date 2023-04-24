@@ -32,7 +32,7 @@ public partial class SPDefinitionWindow
         this.ApplyTheme();
 
         errorSearchBoxBrush.Freeze();
-        var def = Program.Configs[Program.SelectedConfig].GetSMDef();
+        var def = Program.SelectedConfig.GetSMDef();
         if (def == null)
         {
             MessageBox.Show(Translate("ConfigWrongPars"),
@@ -279,7 +279,7 @@ public partial class SPDefinitionWindow
         Close();
 
         var sm = (SMBaseDefinition)item.Tag;
-        var config = Program.Configs[Program.SelectedConfig].SMDirectories;
+        var config = Program.SelectedConfig.SMDirectories;
 
         foreach (var cfg in config)
         {

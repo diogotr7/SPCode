@@ -23,7 +23,7 @@ public partial class MainWindow
         {
             var item = new MenuItem
             {
-                Header = Program.Configs[i].Name, IsCheckable = true, IsChecked = i == Program.SelectedConfig
+                Header = Program.Configs[i].Name, IsCheckable = true, IsChecked = i == Program.SelectedConfigIndex
             };
             item.Click += Item_Click;
             ConfigMenu.Items.Add(item);
@@ -89,7 +89,7 @@ public partial class MainWindow
                 item.IsChecked = name == (string)item.Header;
             }
 
-            Program.SelectedConfig = index;
+            Program.SelectedConfigIndex = index;
             Program.OptionsObject.Program_SelectedConfig = config.Name;
             
             if (EditorReferences.Any())

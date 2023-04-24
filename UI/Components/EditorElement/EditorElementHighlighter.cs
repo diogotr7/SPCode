@@ -210,7 +210,7 @@ public class AeonEditorHighlighting : IHighlightingDefinition
             });
 
             // Apply particular rules from the current SM Definition
-            var def = smDef ?? Program.Configs[Program.SelectedConfig].GetSMDef();
+            var def = smDef ?? Program.SelectedConfig.GetSMDef();
 
             if (def.Defines.Count > 0)
             {

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
@@ -28,9 +30,11 @@ public static class Program
     public static MainWindow MainWindow;
     public static OptionsControl OptionsObject;
     public static TranslationProvider Translations;
+    public static HttpClient HttpClient;
     public static List<HotkeyInfo> HotkeysList;
     public static List<Config> Configs;
-    public static int SelectedConfig;
+    public static Config SelectedConfig => Configs[SelectedConfigIndex];
+    public static int SelectedConfigIndex;
     public static string SelectedTemplatePath;
     public static Stack<string> RecentFilesStack = new();
     public static UpdateInfo UpdateStatus;
@@ -43,6 +47,7 @@ public static class Program
     public static string Indentation => OptionsObject.Editor_ReplaceTabsToWhitespace
         ? new string(' ', OptionsObject.Editor_IndentationSize)
         : "\t";
+
 
     [STAThread]
     public static void Main(string[] args)
@@ -58,150 +63,12 @@ public static class Program
                 [DllImport("kernel32.dll", SetLastError = true)]
                 [return: MarshalAs(UnmanagedType.Bool)]
                 static extern bool AllocConsole();
+
                 // Create console window for debugging & testing
                 AllocConsole();
 #endif
-                var splashScreen = new SplashScreen("Resources/Icons/icon256x.png");
-                splashScreen.Show(false, true);
-                Environment.CurrentDirectory =
-                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ??
-                    throw new NullReferenceException();
-#if !DEBUG
-                    ProfileOptimization.SetProfileRoot(Environment.CurrentDirectory);
-                    ProfileOptimization.StartProfile("Startup.Profile");
-#endif
-                UpdateStatus = new UpdateInfo();
-                OptionsObject = OptionsControl.Load(out var ProgramIsNew);
 
-                if (!File.Exists(Constants.HotkeysFile))
-                {
-                    HotkeyControl.CreateDefaultHotkeys();
-                }
-                else
-                {
-                    HotkeyControl.CheckAndBufferHotkeys();
-                }
-
-                // Delete the default Ctrl+D hotkey to assign manually
-                AvalonEditCommands.DeleteLine.InputGestures.Clear();
-
-                if (OptionsObject.Program_DiscordPresence)
-                {
-                    // Init Discord RPC
-                    DiscordClient.Initialize();
-
-                    // Set default presence
-                    DiscordClient.SetPresence(new RichPresence
-                    {
-                        State = "Idle",
-                        Timestamps = DiscordTime,
-                        Assets = new Assets { LargeImageKey = "immagine" },
-                        Buttons = new Button[]
-                        {
-                            new Button()
-                            {
-                                Label = Constants.GetSPCodeText, Url = Constants.GitHubLatestRelease
-                            }
-                        }
-                    });
-                }
-
-                // Set up translations
-                Translations = new TranslationProvider();
-                Translations.LoadLanguage(OptionsObject.Language, true);
-
-                // Check startup arguments for -rcck
-                foreach (var arg in args)
-                {
-                    if (arg.ToLowerInvariant() == "-rcck") //ReCreateCryptoKey
-                    {
-                        OptionsObject.ReCreateCryptoKey();
-                        MakeRCCKAlert();
-                    }
-                }
-
-                Configs = ConfigLoader.Load();
-                for (var i = 0; i < Configs.Count; ++i)
-                {
-                    if (Configs[i].Name == OptionsObject.Program_SelectedConfig)
-                    {
-                        SelectedConfig = i;
-                        break;
-                    }
-                }
-
-                if (!OptionsObject.Program_UseHardwareAcceleration)
-                {
-                    RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
-                }
-#if !DEBUG
-                    if (ProgramIsNew)
-                    {
-                        if (Translations.AvailableLanguageIDs.Count > 0)
-                        {
-                            splashScreen.Close(new TimeSpan(0, 0, 1));
-                            var langIds = Translations.AvailableLanguageIDs;
-                            var langs = Translations.AvailableLanguages;
-                            var languageWindow = new LanguageChooserWindow(langIds, langs);
-                            languageWindow.ShowDialog();
-                            var potentialSelectedLanguageID = languageWindow.SelectedID;
-                            if (!string.IsNullOrWhiteSpace(potentialSelectedLanguageID))
-                            {
-                                OptionsObject.Language = potentialSelectedLanguageID;
-                                Translations.LoadLanguage(potentialSelectedLanguageID);
-                            }
-
-                            splashScreen.Show(false, true);
-                        }
-                    }
-#endif
-                MainWindow = new MainWindow(splashScreen);
-                var pipeServer = new PipeInteropServer(MainWindow);
-                pipeServer.Start();
-#if !DEBUG
-                }
-                catch (Exception e)
-                {
-                    var crashDir = PathsHelper.CrashLogDirectory;
-                    File.WriteAllText($@"{crashDir}\CRASH_{Environment.TickCount}.txt",
-                        BuildExceptionString(e, "SPCODE LOADING"));
-                    MessageBox.Show(
-                        "An error occured." + Environment.NewLine +
-                        $"A crash report was written in {crashDir}",
-                        "Error",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                    Environment.Exit(Environment.ExitCode);
-                }
-#endif
-                var app = new Application();
-#if !DEBUG
-                try
-                {
-                    if (OptionsObject.Program_CheckForUpdates)
-                    {
-                        Task.Run(UpdateCheck.Check);
-                    }
-#endif
-                app.Startup += App_Startup;
-                app.Run(MainWindow);
-                OptionsControl.Save();
-#if !DEBUG
-                }
-                catch (Exception e)
-                {
-                    var crashDir = PathsHelper.CrashLogDirectory;
-                    File.WriteAllText($@"{crashDir}\CRASH_{Environment.TickCount}.txt",
-                        BuildExceptionString(e, "SPCODE MAIN"));
-                    MessageBox.Show(
-                        "An error occured." + Environment.NewLine +
-                        $"A crash report was written in {crashDir}",
-                        "Error",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                    Environment.Exit(Environment.ExitCode);
-                }
-#endif
+                LoadProgram(args);
             }
             else
             {
@@ -241,6 +108,155 @@ public static class Program
                 } //dont fuck the user up with irrelevant data
             }
         }
+    }
+
+    private static void LoadProgram(string[] args)
+    {
+        var splashScreen = new SplashScreen("Resources/Icons/icon256x.png");
+        splashScreen.Show(false, true);
+        Environment.CurrentDirectory =
+            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ??
+            throw new NullReferenceException();
+#if !DEBUG
+                    ProfileOptimization.SetProfileRoot(Environment.CurrentDirectory);
+                    ProfileOptimization.StartProfile("Startup.Profile");
+#endif
+
+        HttpClient = new HttpClient();
+        HttpClient.DefaultRequestHeaders.TryAddWithoutValidation("user-agent", Constants.ProductHeaderValueName);
+
+        UpdateStatus = new UpdateInfo();
+        OptionsObject = OptionsControl.Load(out var ProgramIsNew);
+
+        // Set up translations
+        LoadTranslations().GetAwaiter().GetResult();
+
+        if (!File.Exists(Constants.HotkeysFile))
+        {
+            HotkeyControl.CreateDefaultHotkeys();
+        }
+        else
+        {
+            HotkeyControl.CheckAndBufferHotkeys();
+        }
+
+        // Delete the default Ctrl+D hotkey to assign manually
+        AvalonEditCommands.DeleteLine.InputGestures.Clear();
+
+        if (OptionsObject.Program_DiscordPresence)
+        {
+            // Init Discord RPC
+            DiscordClient.Initialize();
+
+            // Set default presence
+            DiscordClient.SetPresence(new RichPresence
+            {
+                State = "Idle",
+                Timestamps = DiscordTime,
+                Assets = new Assets { LargeImageKey = "immagine" },
+                Buttons = new Button[]
+                {
+                    new Button() { Label = Constants.GetSPCodeText, Url = Constants.GitHubLatestRelease }
+                }
+            });
+        }
+
+        // Check startup arguments for -rcck
+        if (args.Any(a => a.ToLowerInvariant() == "-rcck"))
+        {
+            OptionsObject.ReCreateCryptoKey();
+            MakeRCCKAlert();
+        }
+
+        Configs = ConfigLoader.Load();
+        for (var i = 0; i < Configs.Count; ++i)
+        {
+            if (Configs[i].Name == OptionsObject.Program_SelectedConfig)
+            {
+                SelectedConfigIndex = i;
+                break;
+            }
+        }
+
+        if (!OptionsObject.Program_UseHardwareAcceleration)
+        {
+            RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
+        }
+#if !DEBUG
+                    if (ProgramIsNew)
+                    {
+                        if (Translations.AvailableLanguageIDs.Count > 0)
+                        {
+                            splashScreen.Close(new TimeSpan(0, 0, 1));
+                            var langIds = Translations.AvailableLanguageIDs;
+                            var langs = Translations.AvailableLanguages;
+                            var languageWindow = new LanguageChooserWindow(langIds, langs);
+                            languageWindow.ShowDialog();
+                            var potentialSelectedLanguageID = languageWindow.SelectedID;
+                            if (!string.IsNullOrWhiteSpace(potentialSelectedLanguageID))
+                            {
+                                OptionsObject.Language = potentialSelectedLanguageID;
+                                Translations.LoadLanguage(potentialSelectedLanguageID);
+                            }
+
+                            splashScreen.Show(false, true);
+                        }
+                    }
+#endif
+        MainWindow = new MainWindow(splashScreen);
+        var pipeServer = new PipeInteropServer(MainWindow);
+        pipeServer.Start();
+#if !DEBUG
+                }
+                catch (Exception e)
+                {
+                    var crashDir = PathsHelper.CrashLogDirectory;
+                    File.WriteAllText($@"{crashDir}\CRASH_{Environment.TickCount}.txt",
+                        BuildExceptionString(e, "SPCODE LOADING"));
+                    MessageBox.Show(
+                        "An error occured." + Environment.NewLine +
+                        $"A crash report was written in {crashDir}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    Environment.Exit(Environment.ExitCode);
+                }
+#endif
+        var app = new Application();
+#if !DEBUG
+                try
+                {
+                    if (OptionsObject.Program_CheckForUpdates)
+                    {
+                        Task.Run(UpdateCheck.Check);
+                    }
+#endif
+        app.Startup += App_Startup;
+        app.Run(MainWindow);
+        OptionsControl.Save();
+#if !DEBUG
+                }
+                catch (Exception e)
+                {
+                    var crashDir = PathsHelper.CrashLogDirectory;
+                    File.WriteAllText($@"{crashDir}\CRASH_{Environment.TickCount}.txt",
+                        BuildExceptionString(e, "SPCODE MAIN"));
+                    MessageBox.Show(
+                        "An error occured." + Environment.NewLine +
+                        $"A crash report was written in {crashDir}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    Environment.Exit(Environment.ExitCode);
+                }
+#endif
+    }
+    
+    private static async Task LoadTranslations()
+    {
+        Translations = new TranslationProvider();
+        await Translations.CheckForUpdates();
+        await Translations.LoadLanguage(OptionsObject.Language, true);
     }
 
     public static void MakeRCCKAlert()

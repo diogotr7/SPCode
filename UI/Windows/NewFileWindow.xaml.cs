@@ -20,7 +20,7 @@ namespace SPCode.UI.Windows;
 public partial class NewFileWindow
 {
     #region Variables
-    private readonly string _pathStr = Program.Configs[Program.SelectedConfig].SMDirectories[0];
+    private readonly string _pathStr = Program.SelectedConfig.SMDirectories[0];
     private readonly string _templatesFile = PathsHelper.TemplatesFilePath;
     private bool TemplateEditMode = false;
     private bool TemplateNewMode = false;

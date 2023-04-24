@@ -29,10 +29,10 @@ public partial class EditorElement
 
             // First search across all scripting directories
 
-            var sm = MatchDefinition(Program.Configs[Program.SelectedConfig].GetSMDef(), word, e);
+            var sm = MatchDefinition(Program.SelectedConfig.GetSMDef(), word, e);
             if (sm != null)
             {
-                var config = Program.Configs[Program.SelectedConfig].SMDirectories;
+                var config = Program.SelectedConfig.SMDirectories;
 
                 foreach (var cfg in config)
                 {

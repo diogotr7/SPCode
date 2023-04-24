@@ -168,7 +168,7 @@ public partial class ConfigWindow
 
         SelectedBox = C_PreBuildCmd;
 
-        ConfigListBox.SelectedIndex = Program.SelectedConfig;
+        ConfigListBox.SelectedIndex = Program.SelectedConfigIndex;
 
         CompileMacros.ToList().ForEach(x => CMD_ItemC.Items.Add(x));
         CMD_ItemC.SelectionChanged += CompileMacros_OnClickedItem;
@@ -266,9 +266,9 @@ public partial class ConfigWindow
 
         Program.Configs.Remove(cfg);
         ConfigListBox.Items.RemoveAt(index);
-        if (index == Program.SelectedConfig)
+        if (index == Program.SelectedConfigIndex)
         {
-            Program.SelectedConfig = 0;
+            Program.SelectedConfigIndex = 0;
         }
 
         ConfigListBox.SelectedIndex = 0;
@@ -690,7 +690,7 @@ public partial class ConfigWindow
             }
 
             Program.MainWindow.FillConfigMenu();
-            await Program.MainWindow.ChangeConfig(Program.SelectedConfig);
+            await Program.MainWindow.ChangeConfig(Program.SelectedConfigIndex);
 
             await ConfigLoader.SaveAsync(Program.Configs);
             

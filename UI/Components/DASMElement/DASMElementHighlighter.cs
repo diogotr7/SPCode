@@ -51,7 +51,7 @@ public class DASMHighlighting : IHighlightingDefinition
                 Regex = new Regex(@"\b0[xX][0-9a-fA-F]+", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture),
                 Color = new HighlightingColor() { Foreground = new SimpleHighlightingBrush(Program.OptionsObject.SH_Numbers) }
             });
-            var def = Program.Configs[Program.SelectedConfig].GetSMDef();
+            var def = Program.SelectedConfig.GetSMDef();
             if (def.TypeStrings.Count > 0)
             {
                 rs.Rules.Add(new HighlightingRule() //Types

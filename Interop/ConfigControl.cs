@@ -19,8 +19,7 @@ public static class ConfigLoader
         if (File.Exists(PathsHelper.ConfigFilePath))
         {
             configs = JsonConvert.DeserializeObject<List<Config>>(File.ReadAllText(PathsHelper.ConfigFilePath),
-                ConfigSerializerSettings
-            );
+                ConfigSerializerSettings);
         }
         else
         {

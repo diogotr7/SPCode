@@ -19,7 +19,7 @@ public static class ManagedAES
 
         try
         {
-            var symmetricKey = Aes.Create("AesManaged")!;
+            var symmetricKey = Aes.Create();
             symmetricKey.Mode = CipherMode.CBC;
             symmetricKey.Padding = PaddingMode.Zeros;
 
@@ -55,7 +55,7 @@ public static class ManagedAES
         try
         {
             var cipherTextBytes = Convert.FromBase64String(encryptedText);
-            var symmetricKey = Aes.Create("AesManaged")!;
+            var symmetricKey = Aes.Create();
             symmetricKey.Mode = CipherMode.CBC;
             symmetricKey.Padding = PaddingMode.Zeros;
             var decryptor = symmetricKey.CreateDecryptor(SaltKey(Program.OptionsObject.Program_CryptoKey),
@@ -110,7 +110,8 @@ public static class ManagedAES
     private static void CreateSalt()
     {
         byte[] buffer;
-        using (HashAlgorithm md5Provider = HashAlgorithm.Create("MD5")!)
+        
+        using (HashAlgorithm md5Provider = MD5.Create())
         {
             var inString =
                 $"SPEditSalt {CpuId()}{DiskId()}{Environment.ProcessorCount}{(Environment.Is64BitOperatingSystem ? "T" : "F")}";

@@ -133,7 +133,7 @@ public partial class EditorElement
             HideTooltip();
         }
 
-        _smDef = Program.Configs[Program.SelectedConfig].GetSMDef();
+        _smDef = Program.SelectedConfig.GetSMDef();
         _acEntries = new List<ACNode>();
         _acEntries.Clear();
         _acEntries = _smDef.ProduceACNodes();

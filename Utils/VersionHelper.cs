@@ -16,7 +16,7 @@ public static class VersionHelper
     {
         return ((AssemblyInformationalVersionAttribute)Assembly.GetExecutingAssembly()
             .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
-            .FirstOrDefault()).InformationalVersion;
+            .FirstOrDefault())!.InformationalVersion;
     }
 
     public static int GetRevisionNumber()
@@ -24,7 +24,7 @@ public static class VersionHelper
         var revRegex = new Regex("(?<=beta)[0-9]*");
         var attribute = (AssemblyInformationalVersionAttribute)Assembly.GetExecutingAssembly()
             .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).FirstOrDefault();
-        if (!revRegex.IsMatch(attribute.InformationalVersion))
+        if (!revRegex.IsMatch(attribute!.InformationalVersion))
         {
             throw new Exception("No match found for specified informational version.");
         }

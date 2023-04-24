@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DiscordRPC;
+using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using SPCode.UI.Components;
 using SPCode.Utils;
@@ -20,17 +21,19 @@ namespace SPCode.UI.Windows;
 public partial class OptionsWindow
 {
     #region Variables
+
     private readonly string[] AvailableAccents =
     {
         "Red", "Green", "Blue", "Purple", "Orange", "Lime", "Emerald", "Teal", "Cyan", "Cobalt", "Indigo", "Violet",
-        "Pink", "Magenta", "Crimson", "Amber",
-        "Yellow", "Brown", "Olive", "Steel", "Mauve", "Taupe", "Sienna"
+        "Pink", "Magenta", "Crimson", "Amber", "Yellow", "Brown", "Olive", "Steel", "Mauve", "Taupe", "Sienna"
     };
 
     private bool AllowChanging;
+
     #endregion
 
     #region Constructors
+
     public OptionsWindow()
     {
         InitializeComponent();
@@ -47,9 +50,11 @@ public partial class OptionsWindow
         SaveHotkeyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
         SaveHotkeyTimer.Tick += OnTimerTick;
     }
+
     #endregion
 
     #region Events
+
     private void DefaultButton_Click(object sender, RoutedEventArgs e)
     {
         Program.OptionsObject.NormalizeSHColors();
@@ -330,7 +335,8 @@ public partial class OptionsWindow
             return;
         }
 
-        var indentationSizeValue = Program.OptionsObject.Editor_IndentationSize = (int)Math.Round(IndentationSize.Value);
+        var indentationSizeValue =
+            Program.OptionsObject.Editor_IndentationSize = (int)Math.Round(IndentationSize.Value);
         var editors = Program.MainWindow.EditorReferences;
         foreach (var editor in editors)
         {
@@ -350,7 +356,7 @@ public partial class OptionsWindow
         Program.OptionsObject.SH_HighlightDeprecateds = HighlightDeprecateds.IsChecked.Value;
     }
 
-    private void LanguageBox_Changed(object sender, RoutedEventArgs e)
+    private async void LanguageBox_Changed(object sender, RoutedEventArgs e)
     {
         if (!AllowChanging)
         {
@@ -362,21 +368,25 @@ public partial class OptionsWindow
         var lang = Program.Translations.AvailableLanguageIDs.FirstOrDefault(x => x == selectedItem.Value);
         try
         {
-            Program.Translations.LoadLanguage(lang);
+            await Program.Translations.LoadLanguage(lang);
+            
             Program.OptionsObject.Language = lang;
-            Program.MainWindow.Language_Translate();
-            Program.MainWindow.EvaluateRTL();
-            Language_Translate();
-            EvaluateRTL();
+            this.Invoke(() =>
+            {
+                Program.MainWindow.Language_Translate();
+                Program.MainWindow.EvaluateRTL();
+                Language_Translate();
+                EvaluateRTL();
+            });
         }
         catch (Exception ex)
         {
-            this.ShowMessageAsync("Error while switching language", $"Details: {ex.Message}", settings: Program.MainWindow.MetroDialogOptions);
+            await this.ShowMessageAsync("Error while switching language", $"Details: {ex.Message}",
+                settings: Program.MainWindow.MetroDialogOptions);
         }
-
     }
 
-    private void ReloadLanguageButton_Click(object sender, RoutedEventArgs e)
+    private async void ReloadLanguageButton_Click(object sender, RoutedEventArgs e)
     {
         if (!AllowChanging)
         {
@@ -387,14 +397,19 @@ public partial class OptionsWindow
         var lang = Program.Translations.AvailableLanguageIDs.FirstOrDefault(x => x == selectedItem.Value);
         try
         {
-            Program.Translations.LoadLanguage(lang);
+            await Program.Translations.LoadLanguage(lang);
+
             Program.OptionsObject.Language = lang;
-            Program.MainWindow.Language_Translate();
-            Language_Translate();
+            this.Invoke(() =>
+            {
+                Program.MainWindow.Language_Translate();
+                Language_Translate();
+            });
         }
         catch (Exception ex)
         {
-            this.ShowMessageAsync("Error while reloading language", $"Details: {ex.Message}", settings: Program.MainWindow.MetroDialogOptions);
+            await this.ShowMessageAsync("Error while reloading language", $"Details: {ex.Message}",
+                settings: Program.MainWindow.MetroDialogOptions);
         }
     }
 
@@ -467,10 +482,7 @@ public partial class OptionsWindow
         {
             Timestamps = val ? Program.DiscordTime : null,
             State = Program.OptionsObject.Program_DiscordPresenceFile ? "Idle" : null,
-            Assets = new Assets
-            {
-                LargeImageKey = "immagine"
-            },
+            Assets = new Assets { LargeImageKey = "immagine" },
             Buttons = new Button[]
             {
                 new Button() { Label = Constants.GetSPCodeText, Url = Constants.GitHubLatestRelease }
@@ -494,10 +506,7 @@ public partial class OptionsWindow
         {
             Timestamps = Program.OptionsObject.Program_DiscordPresenceTime ? Program.DiscordTime : null,
             State = val ? "" : null,
-            Assets = new Assets
-            {
-                LargeImageKey = "immagine"
-            },
+            Assets = new Assets { LargeImageKey = "immagine" },
             Buttons = new Button[]
             {
                 new Button() { Label = Constants.GetSPCodeText, Url = Constants.GitHubLatestRelease }
@@ -568,6 +577,7 @@ public partial class OptionsWindow
     #endregion
 
     #region Methods
+
     private void LoadSettings()
     {
         foreach (var accent in AvailableAccents)
@@ -739,6 +749,7 @@ public partial class OptionsWindow
                 control.FlowDirection = FlowDirection.LeftToRight;
             }
         }
+
         foreach (var child in RGBSliders2.Children)
         {
             if (child is ColorChangeControl control)
@@ -747,5 +758,6 @@ public partial class OptionsWindow
             }
         }
     }
+
     #endregion
 }

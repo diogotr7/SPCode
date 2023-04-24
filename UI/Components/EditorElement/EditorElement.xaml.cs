@@ -717,7 +717,7 @@ public partial class EditorElement : UserControl
                 def.CurrentFunction = currentFunctions.FirstOrDefault(func => func.Index <= caret1 && caret1 <= func.EndPos);
             }
 
-            var smDef = Program.Configs[Program.SelectedConfig].GetSMDef()
+            var smDef = Program.SelectedConfig.GetSMDef()
                 .ProduceTemporaryExpandedDefinition(definitions, caret, currentFunctions);
 
             // Lags the hell out when typing a lot.

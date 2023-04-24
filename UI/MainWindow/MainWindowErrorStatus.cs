@@ -19,7 +19,7 @@ public partial class MainWindow
         {
             return;
         }
-
+        
         UpdateErrorGrid();
     }
 

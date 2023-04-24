@@ -226,7 +226,7 @@ public partial class MainWindow
             HideSearchVisuals();
         }
         ObjectBrowser.ContextMenu = null;
-        var cc = Program.Configs[Program.SelectedConfig];
+        var cc = Program.SelectedConfig;
         if (cc.SMDirectories.Count > 0)
         {
             ChangeObjectBrowserToDirectory((string)OBDirList.SelectedItem);
@@ -497,7 +497,7 @@ public partial class MainWindow
     {
         if (string.IsNullOrWhiteSpace(dir))
         {
-            var cc = Program.Configs[Program.SelectedConfig];
+            var cc = Program.SelectedConfig;
             if (cc.SMDirectories.Count > 0)
             {
                 dir = cc.SMDirectories[0];

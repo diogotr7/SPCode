@@ -78,9 +78,9 @@ public partial class MainWindow
             string rootPath;
             var newFileNum = 0;
 
-            if (Program.Configs[Program.SelectedConfig].SMDirectories.Count > 0)
+            if (Program.SelectedConfig.SMDirectories.Count > 0)
             {
-                rootPath = Program.Configs[Program.SelectedConfig].SMDirectories[0];
+                rootPath = Program.SelectedConfig.SMDirectories[0];
             }
             else
             {

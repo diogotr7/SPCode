@@ -3,8 +3,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using ControlzEx.Theming;
@@ -20,11 +22,14 @@ namespace SPCode.Interop.Updater;
 public partial class UpdateWindow
 {
     #region Variables
+
     private readonly UpdateInfo _updateInfo;
     public bool Succeeded;
+
     #endregion
 
     #region Constructors
+
     public UpdateWindow()
     {
         InitializeComponent();
@@ -37,9 +42,11 @@ public partial class UpdateWindow
         _updateInfo = info;
         PrepareUpdateWindow(OnlyChangelog);
     }
+
     #endregion
 
     #region Events
+
     private void ActionYesButton_Click(object sender, RoutedEventArgs e)
     {
         StartUpdate();
@@ -62,9 +69,11 @@ public partial class UpdateWindow
             Close();
         }
     }
+
     #endregion
 
     #region Methods
+
     /// <summary>
     /// Prepares the update window with all the necessary info.
     /// </summary>
@@ -82,11 +91,13 @@ public partial class UpdateWindow
         else
         {
             Title = string.Format(Translate("VersionAvailable"), _updateInfo.AllReleases[0].TagName);
-            MainLine.Text = string.Format(Translate("WantToUpdate"), NamesHelper.VersionString, _updateInfo.AllReleases[0].TagName);
+            MainLine.Text = string.Format(Translate("WantToUpdate"), NamesHelper.VersionString,
+                _updateInfo.AllReleases[0].TagName);
             ActionYesButton.Content = Translate("Yes");
             ActionNoButton.Content = Translate("No");
             ActionGithubButton.Content = Translate("ViewGithub");
         }
+
         var releasesBody = new StringBuilder();
 
         if (_updateInfo.AllReleases != null && _updateInfo.AllReleases.Count > 0)
@@ -129,14 +140,13 @@ public partial class UpdateWindow
         ActionGithubButton.Visibility = Visibility.Hidden;
         MainLine.Text = string.Format(Translate("UpdatingTo"), _updateInfo.AllReleases[0].TagName);
         SubLine.Text = Translate("DownloadingUpdater");
-        var t = new Thread(UpdateDownloadWorker);
-        t.Start();
+        Task.Run(UpdateDownloadWorker);
     }
 
     /// <summary>
     /// Download worker in charge of downloading the updater asset.
     /// </summary>
-    private void UpdateDownloadWorker()
+    private async Task UpdateDownloadWorker()
     {
         var updater = _updateInfo.Updater;
         var portable = _updateInfo.Portable;
@@ -152,9 +162,10 @@ public partial class UpdateWindow
             {
                 File.Delete(portable.Name);
             }
-            using var client = new WebClient();
-            client.DownloadFile(updater.BrowserDownloadUrl, updater.Name);
-            client.DownloadFile(portable.BrowserDownloadUrl, portable.Name);
+
+            var client = Program.HttpClient;
+            await client.DownloadFile(updater.BrowserDownloadUrl, updater.Name);
+            await client.DownloadFile(portable.BrowserDownloadUrl, portable.Name);
         }
         catch (Exception ex)
         {
@@ -182,9 +193,7 @@ public partial class UpdateWindow
         {
             Process.Start(new ProcessStartInfo
             {
-                Arguments = "/C SPCodeUpdater.exe",
-                FileName = "cmd",
-                WindowStyle = ProcessWindowStyle.Hidden
+                Arguments = "/C SPCodeUpdater.exe", FileName = "cmd", WindowStyle = ProcessWindowStyle.Hidden
             });
             Succeeded = true;
         }
@@ -195,7 +204,7 @@ public partial class UpdateWindow
                 Environment.NewLine + "$$$" + e.StackTrace,
                 "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
-        
+
         Close();
     }
 
@@ -209,5 +218,6 @@ public partial class UpdateWindow
         var date = dateOff.DateTime.ToString("MMMM dd, yyyy", CultureInfo.GetCultureInfo("en-US"));
         return char.ToUpper(date[0]) + date[1..];
     }
+
     #endregion
 }

@@ -113,7 +113,7 @@ public partial class MainWindow
         }
 
         // Fill OB scripting directories combobox from the bottom
-        OBDirList.ItemsSource = Program.Configs[Program.SelectedConfig].SMDirectories;
+        OBDirList.ItemsSource = Program.SelectedConfig.SMDirectories;
         OBDirList.SelectedIndex = 0;
 
         // Set some visual effects
