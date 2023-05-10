@@ -1,4 +1,4 @@
-﻿<controls:MetroWindow xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+<controls:MetroWindow xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
                       xmlns:dock="http://schemas.xceed.com/wpf/xaml/avalondock"
                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -27,6 +27,9 @@
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/themes/dark.red.xaml" />
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/controls.flatbutton.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />
+        <ResourceDictionary Source="../Colors.xaml"/>
+
         <ResourceDictionary>
 
           <!-- Button style with pressed effects -->
@@ -164,7 +167,6 @@
               </BooleanAnimationUsingKeyFrames.KeyFrames>
             </BooleanAnimationUsingKeyFrames>
           </Storyboard>
-
         </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
@@ -380,40 +382,8 @@
                              ActiveContentChanged="DockingManager_ActiveContentChanged"
                              DocumentClosed="DockingManager_DocumentClosed">
           <DockingManager.Resources>
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor1" 
-                             Color="{DynamicResource MahApps.Colors.ThemeForeground}"/>
 
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor2" 
-                             Color="{DynamicResource MahApps.Colors.ThemeBackground}"/>
-
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor3" 
-                             Color="{DynamicResource MahApps.Colors.Accent}"/>
-            <!--ItemLine-->
-
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor4" 
-                             Color="{DynamicResource MahApps.Colors.Accent2}"/>
-            <!--MouseOver ItemLine-->
-
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor5" 
-                             Color="{DynamicResource MahApps.Colors.ThemeForeground}"/>
-            <!--Item Foreground-->
-
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor6" 
-                             Color="{DynamicResource MahApps.Colors.ThemeBackground}"/>
-
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor7" 
-                             Color="{DynamicResource MahApps.Colors.Gray1}"/>
-            
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor31"
-                             Color="{DynamicResource MahApps.Colors.ThemeBackground}"/>
-
-            <SolidColorBrush x:Key="AvalonDock_ThemeMetro_BaseColor33"
-                             Color="{DynamicResource MahApps.Colors.ThemeBackground}"/>
           </DockingManager.Resources>
-          <DockingManager.Theme>
-            <MetroTheme/>
-          </DockingManager.Theme>
-          
           <LayoutRoot>
             <LayoutPanel>
               <LayoutDocumentPaneGroup x:Name="DockingPaneGroup"
